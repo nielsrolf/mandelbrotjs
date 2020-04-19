@@ -7,9 +7,6 @@ import _ from 'lodash';
  */
 
 
-const H = 100;
-const W = 100;
-
 
 function mandelbrot(r, i, N=1000) {
     let z_r = 0
@@ -37,12 +34,16 @@ class Canvas {
     }
 
     getHeatmapData() {
+        let N = document.getElementById("iterations").value
+        let H = document.getElementById("res").value
+        let W = H
         return _.range(H).map(
             h => _.range(W).map(
                 w => {
                     let z = mandelbrot(
                         this.x0 + h/H*(this.x1 - this.x0),
-                        this.y0 + w/H*(this.y1 - this.y0)
+                        this.y0 + w/H*(this.y1 - this.y0),
+                        N
                     );
                     this.min = this.min < z ? this.min : z
                     this.max = this.max > z ? this.max : z
@@ -131,18 +132,15 @@ function render(canvas) {
 // Plotly.redraw('PlotlyTest');
 function init() {
     render(canvas)
+    document.getElementById('iterations').addEventListener('change', (event) => render(canvas));
+    document.getElementById('res').addEventListener('change', (event) => render(canvas));
 }
 
 
 document.addEventListener('DOMContentLoaded', init, false);
-
-// setInterval(() => {
-//     canvas.zoomTo(-2, 0, 0.995)
-//     render(canvas)
-// }, 100)
-
-
 document.addEventListener('keypress', logKey);
+const selectElement = document.querySelector('.ice-cream');
+
 
 function logKey(e) {
   if(e.code=='Digit5') {
