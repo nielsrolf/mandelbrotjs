@@ -1,0 +1,37 @@
+name: Deploy
+
+on: push
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - run: npm install
+      - run: npm install -g parcel-bundler
+      - run: parcel build index.html
+      - uses: actions/upload-artifact@master
+        with:
+          name: bundled
+          path: dist
+
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@master
+        with:
+          name: bundled
+          path: dist
+      - run: git checkout git@github.com:nielsrolf/nielsrolf.github.io.git
+      - run: cp nielsrolf.github.io/README.md .
+      - run: cp -r dist/* nielsrolf.github.io/
+      - run: cd nielsrolf.github.io && git add . && git commit -m "Automated build update"
+
