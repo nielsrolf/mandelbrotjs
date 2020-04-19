@@ -16,9 +16,6 @@ jobs:
       - run: npm install
       - run: npm install -g parcel-bundler
       - run: parcel build index.html
-      - run: echo $TEST > dist/test
-        env:
-          TEST: ${{ secrets.TEST }}
       - uses: actions/upload-artifact@master
         with:
           name: bundled
@@ -36,11 +33,10 @@ jobs:
           path: dist
       - run: mkdir ~/.ssh
       - run: git config --global user.email "niels.warncke@gmail.com"
-      - run: echo $SSH_KEY > ~/.ssh/id_rsa
+      - run: echo $SSH_KEY > tmp && sed '/\\n/G;s/\\n\(.*\)\(.\)/\2\1/;P;D' tmp > ~/.ssh/id_rsa
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
       - run: chmod 600 ~/.ssh/id_rsa
-      - run: wc -l ~/.ssh/id_rsa
       - run: git clone git@github.com:nielsrolf/nielsrolf.github.io.git
       - run: cp nielsrolf.github.io/README.md .
       - run: cp -r dist/* nielsrolf.github.io/
