@@ -111,3 +111,5 @@ temp/
 # End of https://www.gitignore.io/api/node
 
 limits
+id_rsa
+id_rsa.pub
