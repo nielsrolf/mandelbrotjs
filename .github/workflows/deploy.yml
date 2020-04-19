@@ -33,6 +33,7 @@ jobs:
           path: dist
       - run: mkdir ~/.ssh
       - run: git config --global user.email "niels.warncke@gmail.com"
+      - run: git config --global user.name "CI of mandelbrotjs"
       - run: echo $SSH_KEY > tmp && sed '/\\n/G;s/\\n\(.*\)\(.\)/\2\1/;P;D' tmp > ~/.ssh/id_rsa
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
