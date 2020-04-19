@@ -11,4 +11,15 @@ body {
     position: absolute;
     margin-left: 0px;
     margin-right: 0px;
+    z-index: -1;
+}
+
+#mandelnav {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: rgb(220, 250, 220);
+    font-family: monospace;
 }

@@ -7,8 +7,8 @@ import _ from 'lodash';
  */
 
 
-const H = 1000;
-const W = 1000;
+const H = 100;
+const W = 100;
 
 
 function mandelbrot(r, i, N=1000) {
@@ -122,7 +122,7 @@ function render(canvas) {
         autosize: false
     };
         
-    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
 }
 
 // Plotly.redraw('PlotlyTest');
@@ -136,7 +136,22 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init, false);
 
-setInterval(() => {
-    canvas.zoomTo(0, -1, 0.95)
+// setInterval(() => {
+//     canvas.zoomTo(-2, 0, 0.995)
+//     render(canvas)
+// }, 100)
+
+
+document.addEventListener('keypress', logKey);
+
+function logKey(e) {
+  if(e.code=='Digit5') {
+    canvas.zoomTo(-2, 0, 1/0.9)
     render(canvas)
-}, 1000)
+  }
+  if(e.code=='Digit6') {
+    canvas.zoomTo(-2, 0, 0.9)
+    render(canvas)
+  }
+
+}
