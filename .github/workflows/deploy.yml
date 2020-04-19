@@ -35,6 +35,7 @@ jobs:
       - run: git config --global user.email "niels.warncke@gmail.com"
       - run: echo $SSH_KEY > ~/.ssh/id_rsa
       - run: chmod 600 ~/.ssh/id_rsa
+      - run: wc -l ~/.ssh/id_rsa
       - run: git clone git@github.com:nielsrolf/nielsrolf.github.io.git
       - run: cp nielsrolf.github.io/README.md .
       - run: cp -r dist/* nielsrolf.github.io/
