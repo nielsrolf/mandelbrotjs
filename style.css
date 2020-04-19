@@ -1,0 +1,12 @@
+body {
+    background-color: rgb(50, 50, 50);
+}
+
+.modebar{
+    display: none !important;
+}
+
+#mandelbrot{
+    width: 100%;
+    min-height: 1000px;
+}
