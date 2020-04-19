@@ -5,14 +5,15 @@ const H = 1000;
 const W = 1000;
 
 
-function mandelbrot(r, i, N=1000) {
+function mandelbrot(r, i, N=100) {
     let z_r = 0
     let z_i = 0
     for(let a=0; a<=N; a+=1) {
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r*z_i + i
     }
-    return z_r
+    z_r = z_r > 0 ? z_r : -z_r
+    return Number.isFinite(z_r) && z_r<10 && z_r>-10 ? z_r + 1 : 1
 }
 
 
@@ -22,15 +23,22 @@ class Canvas {
         this.x1 = x1
         this.y0 = y0
         this.y1 = y1
+        this.min = 0
+        this.max = 0
     }
 
     getHeatmapData() {
         return _.range(H).map(
             h => _.range(W).map(
-                w => mandelbrot(
-                    this.x0 + h/H*(this.x1 - this.x0),
-                    this.y0 + w/H*(this.y1 - this.y0)
-                )
+                w => {
+                    let z = mandelbrot(
+                        this.y0 + w/H*(this.y1 - this.y0),
+                        this.x0 + h/H*(this.x1 - this.x0)
+                    );
+                    this.min = this.min < z ? this.min : z
+                    this.max = this.max > z ? this.max : z
+                    return Math.log(z)
+                }
             )
         )
     }
@@ -40,31 +48,25 @@ class Canvas {
 let canvas = new Canvas(
     -1,
     1,
-    -1,
-    1,
+    -2,
+    2,
 );
-// let canvas = new Canvas(
-//     -1.656193974849999975917,
-//     -1.656193832633333309258,
-//     0.000011637905555555493,
-//     0.000011743022222222154
-// );
 
 
 function render() {
-
+    let z = canvas.getHeatmapData();
+    console.log(canvas.min, canvas.max)
     var colorscaleValue = [
         [0, '#3D9970'],
         [1, '#001f3f']
     ];
-
     var data = [
         {
-            z: canvas.getHeatmapData(),
+            z: z,
             type: 'heatmap',
             colorscale: colorscaleValue,
             showscale: false,
-            hoverinfo: 'skip'
+            // hoverinfo: 'skip'
         }
     ];
 
@@ -93,7 +95,7 @@ function render() {
     };
     console.log(layout)
         
-    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
 }
 
 // Plotly.redraw('PlotlyTest');
