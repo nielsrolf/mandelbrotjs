@@ -13,12 +13,12 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
-      - run: echo $TEST > test && cat test
-        env:
-          TEST: ${{ secrets.TEST }}
       - run: npm install
       - run: npm install -g parcel-bundler
       - run: parcel build index.html
+      - run: echo $TEST > dist/test
+        env:
+          TEST: ${{ secrets.TEST }}
       - uses: actions/upload-artifact@master
         with:
           name: bundled
