@@ -79,6 +79,8 @@ let canvas = new Canvas(
 
 
 function render(canvas) {
+    let height = document.getElementById('mandelbrot').clientHeight;
+    let width = document.getElementById('mandelbrot').clientWidth;
     let z = canvas.getHeatmapData();
     console.log(canvas.min, canvas.max)
     var colorscaleValue = [
@@ -103,8 +105,9 @@ function render(canvas) {
         showticklabels: false,
         ticks: ''
     };
-
     
+    console.log(document.clientHeight)
+
     var layout = {
         xaxis: axisTemplate,
         yaxis: axisTemplate,
@@ -118,16 +121,26 @@ function render(canvas) {
         showlegend: false,
         // with: document.getElementById('mandelbrot').parentElement.clientWidth,
         // height: document.getElementById('mandelbrot').parentElement.clientHeight,
-        width: screen.width,
-        height: screen.height,
+        width: width, //screen.width,
+        height: height, //screen.height,
         autosize: false
     };
         
     Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
 }
 
-// Plotly.redraw('PlotlyTest');
 
+function logKey(e) {
+    console.log('hi', e.clientX, e.clientY)
+    if(e.code=='Digit5') {
+        canvas.zoomTo(-2, 0, 1/0.9)
+        render(canvas)
+    }
+    if(e.code=='Digit6') {
+        canvas.zoomTo(-2, 0, 0.9)
+        render(canvas)
+    }
+}
 
 // Plotly.redraw('PlotlyTest');
 function init() {
@@ -139,17 +152,4 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init, false);
 document.addEventListener('keypress', logKey);
-const selectElement = document.querySelector('.ice-cream');
 
-
-function logKey(e) {
-  if(e.code=='Digit5') {
-    canvas.zoomTo(-2, 0, 1/0.9)
-    render(canvas)
-  }
-  if(e.code=='Digit6') {
-    canvas.zoomTo(-2, 0, 0.9)
-    render(canvas)
-  }
-
-}
