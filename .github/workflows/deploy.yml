@@ -31,7 +31,7 @@ jobs:
         with:
           name: bundled
           path: dist
-      - run: git checkout git@github.com:nielsrolf/nielsrolf.github.io.git
+      - run: git clone git@github.com:nielsrolf/nielsrolf.github.io.git
       - run: cp nielsrolf.github.io/README.md .
       - run: cp -r dist/* nielsrolf.github.io/
       - run: cd nielsrolf.github.io && git add . && git commit -m "Automated build update"
