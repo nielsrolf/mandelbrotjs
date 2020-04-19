@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
+      - run: echo $TEST
       - run: npm install
       - run: npm install -g parcel-bundler
       - run: parcel build index.html
