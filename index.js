@@ -1,19 +1,28 @@
 import Plotly from 'plotly.js-cartesian-dist';
 import _ from 'lodash';
 
+/***
+ * In general:
+ * x <-> real part of the complex number <-> width of the screen
+ */
+
+
 const H = 1000;
 const W = 1000;
 
 
-function mandelbrot(r, i, N=100) {
+function mandelbrot(r, i, N=1000) {
     let z_r = 0
     let z_i = 0
     for(let a=0; a<=N; a+=1) {
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r*z_i + i
+        if(!(Number.isFinite(z_r) && z_r<100 && z_r>-100)) {
+            return 100
+        }
     }
     z_r = z_r > 0 ? z_r : -z_r
-    return Number.isFinite(z_r) && z_r<10 && z_r>-10 ? z_r + 1 : 1
+    return Number.isFinite(z_r) && z_r<10 && z_r>-10 ? z_r + 1 : 100
 }
 
 
@@ -32,8 +41,8 @@ class Canvas {
             h => _.range(W).map(
                 w => {
                     let z = mandelbrot(
-                        this.y0 + w/H*(this.y1 - this.y0),
-                        this.x0 + h/H*(this.x1 - this.x0)
+                        this.x0 + h/H*(this.x1 - this.x0),
+                        this.y0 + w/H*(this.y1 - this.y0)
                     );
                     this.min = this.min < z ? this.min : z
                     this.max = this.max > z ? this.max : z
@@ -42,23 +51,41 @@ class Canvas {
             )
         )
     }
+
+    zoomTo(r, i, zoom=0.9) {
+        /*** Change the limits of the canvas so that a smaller (zoomed in) area is shown
+         * It zooms into the direction of the complex number (r, u) and moves every
+         * pixel by the factor zoom closer to the target
+         * 
+         * r: real part of the target
+         * i: imaginary part of the target
+         * zoom
+         */
+        this.x0 = this.x0*zoom + r*(1-zoom)
+        this.x1 = this.x1*zoom + r*(1-zoom)
+        this.y0 = this.y0*zoom + i*(1-zoom)
+        this.y1 = this.y1*zoom + i*(1-zoom)
+    }
 }
 
 
 let canvas = new Canvas(
-    -1,
-    1,
     -2,
     2,
+    -1,
+    1,
 );
 
 
-function render() {
+function render(canvas) {
     let z = canvas.getHeatmapData();
     console.log(canvas.min, canvas.max)
     var colorscaleValue = [
         [0, '#3D9970'],
-        [1, '#001f3f']
+        [0.125, 'rgb(200, 200, 10)'],
+        [0.25, 'rgb(10, 200, 10)'],
+        [0.9, '#001f3f'],
+        [1, 'rgb(50,50,50)']
     ];
     var data = [
         {
@@ -66,6 +93,7 @@ function render() {
             type: 'heatmap',
             colorscale: colorscaleValue,
             showscale: false,
+            transpose: true,
             // hoverinfo: 'skip'
         }
     ];
@@ -93,11 +121,22 @@ function render() {
         height: screen.height,
         autosize: false
     };
-    console.log(layout)
         
-    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
+    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
 }
 
 // Plotly.redraw('PlotlyTest');
 
-document.addEventListener('DOMContentLoaded', render, false);
+
+// Plotly.redraw('PlotlyTest');
+function init() {
+    render(canvas)
+}
+
+
+document.addEventListener('DOMContentLoaded', init, false);
+
+setInterval(() => {
+    canvas.zoomTo(0, -1, 0.95)
+    render(canvas)
+}, 1000)
