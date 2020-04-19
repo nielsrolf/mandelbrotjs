@@ -8,5 +8,7 @@ body {
 
 #mandelbrot{
     width: 100%;
-    min-height: 1000px;
+    position: absolute;
+    margin-left: 0px;
+    margin-right: 0px;
 }

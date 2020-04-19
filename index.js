@@ -1,13 +1,57 @@
 import Plotly from 'plotly.js-cartesian-dist';
 import _ from 'lodash';
 
-let data = _.range(1000).map(
-    row => _.range(1000).map(
-        col => (row-500)*(col-500)
-    )
-);
+const H = 1000;
+const W = 1000;
 
-function render(data) {
+
+function mandelbrot(r, i, N=1000) {
+    let z_r = 0
+    let z_i = 0
+    for(let a=0; a<=N; a+=1) {
+        z_r = z_r*z_r - z_i*z_i + r
+        z_i = 2*z_r*z_i + i
+    }
+    return z_r
+}
+
+
+class Canvas {
+    constructor(x0, x1, y0, y1) {
+        this.x0 = x0
+        this.x1 = x1
+        this.y0 = y0
+        this.y1 = y1
+    }
+
+    getHeatmapData() {
+        return _.range(H).map(
+            h => _.range(W).map(
+                w => mandelbrot(
+                    this.x0 + h/H*(this.x1 - this.x0),
+                    this.y0 + w/H*(this.y1 - this.y0)
+                )
+            )
+        )
+    }
+}
+
+
+let canvas = new Canvas(
+    -1,
+    1,
+    -1,
+    1,
+);
+// let canvas = new Canvas(
+//     -1.656193974849999975917,
+//     -1.656193832633333309258,
+//     0.000011637905555555493,
+//     0.000011743022222222154
+// );
+
+
+function render() {
 
     var colorscaleValue = [
         [0, '#3D9970'],
@@ -16,10 +60,11 @@ function render(data) {
 
     var data = [
         {
-            z: data,
+            z: canvas.getHeatmapData(),
             type: 'heatmap',
             colorscale: colorscaleValue,
-            showscale: false
+            showscale: false,
+            hoverinfo: 'skip'
         }
     ];
 
@@ -48,12 +93,9 @@ function render(data) {
     };
     console.log(layout)
         
-    Plotly.newPlot('mandelbrot', data, layout);
+    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
 }
 
-function init() {
-    render(data)
-}
 // Plotly.redraw('PlotlyTest');
 
-document.addEventListener('DOMContentLoaded', init, false);
+document.addEventListener('DOMContentLoaded', render, false);
