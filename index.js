@@ -162,12 +162,35 @@ function render(canvas) {
     };
         
     Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+    let res = parseInt(document.getElementById('res').value);
+    let iterations = parseInt(document.getElementById('iterations').value);
     document.getElementById('status').innerHTML = `
-        Resolution ${document.getElementById('res').value} <br/>
-        Iterations ${document.getElementById('iterations').value} <br/>
+        Resolution ${res} <br/>
+        Iterations ${iterations} <br/>
         Real range (x) ${canvas.x0} - ${canvas.x1} <br/>
         Imaginary range (y) ${canvas.y0} - ${canvas.y1} <br/>
     `
+    let settings = encode({
+        x0: canvas.x0,
+        x1: canvas.x1,
+        ymean: (canvas.y0 + canvas.y1)/2,
+        res: res,
+        iterations: iterations
+    })
+    canvas.url = `${location.href}?s=${settings}`
+}
+
+
+function encode(obj) {
+    return Buffer.from(JSON.stringify(obj)).toString('base64')
+}
+
+
+function decode(encoded) {
+    console.log('encoded', encoded)
+    let obj = JSON.parse(Buffer.from(encoded, 'base64').toString())
+    console.log('decoded', obj)
+    return obj
 }
 
 
@@ -221,32 +244,67 @@ function keyEvents(e) {
 }
 
 
+function copyToClipboard() {
+    const el = document.createElement('textarea');
+    el.value = canvas.url ? canvas.url : location.href;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+};
+
 
 function setTarget(clickEvent) {
     let pos = canvas.locationAt(clickEvent);
-    console.log(pos)
+    // console.log(pos)
     target.r = pos.r;
     target.i = pos.i;
 }
 
 
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+          tmp = item.split("=");
+          if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+    return result;
+}
+
+
 function init() {
+    let settings = findGetParameter('s');
     const scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
-    canvas.y0 = -2*scale
-    canvas.y1 = 2*scale
+    if(settings) {
+        settings = decode(settings)
+        canvas.x0 = settings.x0
+        canvas.x1 = settings.x1
+        canvas.y0 = settings.ymean - (settings.x1-settings.x0)*scale/2
+        canvas.y1 = settings.ymean + (settings.x1-settings.x0)*scale/2
+        document.getElementById('res').value = settings.res
+        document.getElementById('iterations').value = settings.iterations
+    }else{
+        canvas.y0 = -2*scale
+        canvas.y1 = 2*scale
+        for(let c=4; c<=10; c+=1) {
+            setTimeout(() => {
+                document.getElementById('res').value = 2**c
+                render(canvas)
+            }, (c+1)*1000)
+        }
+    }
     render(canvas)
     document.getElementById('iterations').addEventListener('change', (event) => render(canvas));
     document.getElementById('res').addEventListener('change', (event) => render(canvas));
-    for(let c=0; c<=10; c+=1) {
-        setTimeout(() => {
-            document.getElementById('res').value = c*20
-            render(canvas)
-        }, (c+1)*1000)
-    }
+    document.getElementById('copy').addEventListener('click', copyToClipboard, true);
+    document.getElementById('mandelbrot').addEventListener('click', setTarget, false);
 }
 
 
 document.addEventListener('DOMContentLoaded', init, false);
 document.onkeydown = keyEvents
-document.addEventListener('click', setTarget);
 
