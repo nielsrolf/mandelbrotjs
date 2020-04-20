@@ -182,14 +182,21 @@ function render(canvas) {
 
 
 function encode(obj) {
-    return Buffer.from(JSON.stringify(obj)).toString('base64')
+    encoded = encodeURIComponent(
+        Buffer.from(
+            JSON.stringify(obj)
+        ).toString('base64')
+    )
+    return encoded
 }
 
 
 function decode(encoded) {
     console.log('encoded', encoded)
-    let obj = JSON.parse(Buffer.from(encoded, 'base64').toString())
-    console.log('decoded', obj)
+    let obj = JSON.parse(
+        Buffer.from(
+            decodeURIComponent(encoded),'base64'
+        ).toString())
     return obj
 }
 
@@ -281,6 +288,7 @@ function init() {
     const scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
     if(settings) {
         settings = decode(settings)
+        console.log('loaded:', settings)
         canvas.x0 = settings.x0
         canvas.x1 = settings.x1
         canvas.y0 = settings.ymean - (settings.x1-settings.x0)*scale/2
