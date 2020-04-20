@@ -23,6 +23,12 @@ function mandelbrot(r, i, N=1000) {
 }
 
 
+let target = {
+    r: 0,
+    i: 0
+}
+
+
 class Canvas {
     constructor(x0, x1, y0, y1) {
         this.x0 = x0
@@ -53,7 +59,7 @@ class Canvas {
         )
     }
 
-    zoomTo(r, i, zoom=0.9) {
+    zoomTo(zoom=0.9) {
         /*** Change the limits of the canvas so that a smaller (zoomed in) area is shown
          * It zooms into the direction of the complex number (r, u) and moves every
          * pixel by the factor zoom closer to the target
@@ -62,19 +68,51 @@ class Canvas {
          * i: imaginary part of the target
          * zoom
          */
-        this.x0 = this.x0*zoom + r*(1-zoom)
-        this.x1 = this.x1*zoom + r*(1-zoom)
-        this.y0 = this.y0*zoom + i*(1-zoom)
-        this.y1 = this.y1*zoom + i*(1-zoom)
+        this.x0 = target.r - (target.r - this.x0) * zoom
+        this.x1 = target.r - (target.r - this.x1) * zoom
+        this.y0 = target.i - (target.i - this.y0) * zoom
+        this.y1 = target.i - (target.i - this.y1) * zoom
+        console.log(this)
+    }
+
+    left() {
+        this.x0 -= (this.x1-this.x0)*0.1
+        this.x1 -= (this.x1-this.x0)*0.1
+    }
+
+    right() {
+        this.x0 += (this.x1-this.x0)*0.1
+        this.x1 += (this.x1-this.x0)*0.1
+    }
+
+    up() {
+        this.y0 += (this.y1-this.y0)*0.1
+        this.y1 += (this.y1-this.y0)*0.1
+    }
+
+    down() {
+        this.y0 -= (this.y1-this.y0)*0.1
+        this.y1 -= (this.y1-this.y0)*0.1
+    }
+
+    locationAt(clickEvent) {
+        let container = document.getElementById('mandelbrot')
+        let x = this.x0 + clickEvent.clientX/container.clientWidth*(this.x1-this.x0)
+        let y = this.y0 + clickEvent.clientY/container.clientHeight*(this.y1-this.y0)
+        return {
+            r: x,
+            i: y
+        }
     }
 }
+
 
 
 let canvas = new Canvas(
     -2,
     2,
-    -1,
-    1,
+    -2,
+    2,
 );
 
 
@@ -105,8 +143,6 @@ function render(canvas) {
         showticklabels: false,
         ticks: ''
     };
-    
-    console.log(document.clientHeight)
 
     var layout = {
         xaxis: axisTemplate,
@@ -126,24 +162,73 @@ function render(canvas) {
         autosize: false
     };
         
-    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
+    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
 }
 
 
-function logKey(e) {
-    console.log('hi', e.clientX, e.clientY)
+function keyEvents(e) {
+    if(e.code=='Digit1') {
+        canvas.zoomTo(1/0.9**9)
+    }
+    if(e.code=='Digit2') {
+        canvas.zoomTo(1/0.9**7)
+    }
+    if(e.code=='Digit3') {
+        canvas.zoomTo(1/0.9**5)
+    }
+    if(e.code=='Digit4') {
+        canvas.zoomTo(1/0.9**3)
+    }
     if(e.code=='Digit5') {
-        canvas.zoomTo(-2, 0, 1/0.9)
-        render(canvas)
+        canvas.zoomTo(1/0.9)
     }
     if(e.code=='Digit6') {
-        canvas.zoomTo(-2, 0, 0.9)
-        render(canvas)
+        canvas.zoomTo(0.9)
     }
+    if(e.code=='Digit7') {
+        canvas.zoomTo(0.9**3)
+    }
+    if(e.code=='Digit8') {
+        canvas.zoomTo(0.9**5)
+    }
+    if(e.code=='Digit9') {
+        canvas.zoomTo(0.9**7)
+    }
+    if(e.code=='Digit0') {
+        canvas.zoomTo(0.9**9)
+    }
+    switch (event.keyCode) {
+        case 37:
+            canvas.left()
+            break;
+        case 38:
+            canvas.up()
+            break;
+        case 39:
+            canvas.right()
+            break;
+        case 40:
+            canvas.down()
+            break;
+     }
+
+    render(canvas)
 }
 
-// Plotly.redraw('PlotlyTest');
+
+
+function setTarget(clickEvent) {
+    let pos = canvas.locationAt(clickEvent);
+    console.log(pos)
+    target.r = pos.r;
+    target.i = pos.i;
+}
+
+
 function init() {
+    const scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
+    canvas.y0 = -2*scale
+    canvas.y1 = 2*scale
     render(canvas)
     document.getElementById('iterations').addEventListener('change', (event) => render(canvas));
     document.getElementById('res').addEventListener('change', (event) => render(canvas));
@@ -151,5 +236,6 @@ function init() {
 
 
 document.addEventListener('DOMContentLoaded', init, false);
-document.addEventListener('keypress', logKey);
+document.onkeydown = keyEvents
+document.addEventListener('click', setTarget);
 
