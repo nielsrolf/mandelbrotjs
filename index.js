@@ -177,7 +177,7 @@ function render(canvas) {
         res: res,
         iterations: iterations
     })
-    canvas.url = `${location.href}?s=${settings}`
+    canvas.url = `${location.href.split("?")[0]}?s=${settings}`
 }
 
 
