@@ -1,5 +1,7 @@
 body {
     background-color:rgb(50, 50, 50);
+    color: rgb(220, 250, 220);
+    font-family: monospace;
 }
 
 .modebar{
@@ -21,6 +23,12 @@ body {
     left: 0px;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.5);
-    color: rgb(220, 250, 220);
-    font-family: monospace;
+}
+
+#status {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
 }

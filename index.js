@@ -120,7 +120,6 @@ function render(canvas) {
     let height = document.getElementById('mandelbrot').clientHeight;
     let width = document.getElementById('mandelbrot').clientWidth;
     let z = canvas.getHeatmapData();
-    console.log(canvas.min, canvas.max)
     var colorscaleValue = [
         [0, '#3D9970'],
         [0.125, 'rgb(200, 200, 10)'],
@@ -163,6 +162,12 @@ function render(canvas) {
     };
         
     Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+    document.getElementById('status').innerHTML = `
+        Resolution ${document.getElementById('res').value} <br/>
+        Iterations ${document.getElementById('iterations').value} <br/>
+        Real range (x) ${canvas.x0} - ${canvas.x1} <br/>
+        Imaginary range (y) ${canvas.y0} - ${canvas.y1} <br/>
+    `
 }
 
 
@@ -232,6 +237,12 @@ function init() {
     render(canvas)
     document.getElementById('iterations').addEventListener('change', (event) => render(canvas));
     document.getElementById('res').addEventListener('change', (event) => render(canvas));
+    for(let c=0; c<=10; c+=1) {
+        setTimeout(() => {
+            document.getElementById('res').value = c*20
+            render(canvas)
+        }, (c+1)*1000)
+    }
 }
 
 
