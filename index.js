@@ -170,7 +170,7 @@ class Canvas {
             autosize: false
         };
             
-        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
+        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
     }
 
     render(thumbnail=true) {

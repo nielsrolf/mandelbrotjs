@@ -1,3 +1,5 @@
+[Try it!](https://nielsrolf.github.io/)
+
 # Setup
 ```
 npm install -g parcel-bundler
