@@ -21,8 +21,6 @@ function mandelbrot(r, i, N=1000) {
         }
     }
     z_r = Math.sqrt(z_i*z_i + z_r*z_r)
-    // z_r = z_i
-    z_r = z_r > 0 ? z_r : -z_r
     return Number.isFinite(z_r) && z_r<100000 ? z_r + 1 : 100000
 }
 
@@ -70,37 +68,44 @@ class Canvas {
          * i: imaginary part of the target
          * zoom
          */
-        this.x0 = target.r - (target.r - this.x0) * zoom
-        this.x1 = target.r - (target.r - this.x1) * zoom
-        this.y0 = target.i - (target.i - this.y0) * zoom
-        this.y1 = target.i - (target.i - this.y1) * zoom
-        console.log(this)
+        x0 = this.x0
+        x1 = this.x1
+        y0 = this.y0
+        y1 = this.y1
+        this.x0 = target.r - (target.r - x0) * zoom
+        this.x1 = target.r - (target.r - x1) * zoom
+        this.y0 = target.i - (target.i - y0) * zoom
+        this.y1 = target.i - (target.i - y1) * zoom
     }
 
     left() {
-        this.x0 -= (this.x1-this.x0)*0.1
-        this.x1 -= (this.x1-this.x0)*0.1
+        let delta = this.x1-this.x0
+        this.x0 -= delta*0.1
+        this.x1 -= delta*0.1
     }
 
     right() {
-        this.x0 += (this.x1-this.x0)*0.1
-        this.x1 += (this.x1-this.x0)*0.1
+        let delta = this.x1-this.x0
+        this.x0 += delta*0.1
+        this.x1 += delta*0.1
     }
 
     up() {
-        this.y0 += (this.y1-this.y0)*0.1
-        this.y1 += (this.y1-this.y0)*0.1
+        let delta = (this.y1-this.y0)
+        this.y0 += delta*0.1
+        this.y1 += delta*0.1
     }
 
     down() {
-        this.y0 -= (this.y1-this.y0)*0.1
-        this.y1 -= (this.y1-this.y0)*0.1
+        let delta = (this.y1-this.y0)
+        this.y0 -= delta*0.1
+        this.y1 -= delta*0.1
     }
 
     locationAt(clickEvent) {
         let container = document.getElementById('mandelbrot')
         let x = this.x0 + clickEvent.clientX/container.clientWidth*(this.x1-this.x0)
-        let y = this.y0 + clickEvent.clientY/container.clientHeight*(this.y1-this.y0)
+        let y = this.y0 + (1-clickEvent.clientY/container.clientHeight)*(this.y1-this.y0)
         return {
             r: x,
             i: y
@@ -285,6 +290,7 @@ function setTarget(clickEvent) {
     // console.log(pos)
     target.r = pos.r;
     target.i = pos.i;
+    document.getElementById("focused").innerHTML = `(${pos.r}, ${pos.i})`
 }
 
 
@@ -316,12 +322,6 @@ function init() {
     }else{
         canvas.y0 = -2*scale
         canvas.y1 = 2*scale
-        for(let c=4; c<=10; c+=1) {
-            setTimeout(() => {
-                document.getElementById('res').value = 2**c
-                canvas.render(false)
-            }, (c+1)*1000)
-        }
     }
     canvas.render()
     document.getElementById('iterations').addEventListener('change', (event) => canvas.render());
