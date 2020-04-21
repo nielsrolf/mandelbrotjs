@@ -12,14 +12,18 @@ function mandelbrot(r, i, N=1000) {
     let z_r = 0
     let z_i = 0
     for(let a=0; a<=N; a+=1) {
+        z_r_ = z_r
+        z_i_ = z_i
         z_r = z_r*z_r - z_i*z_i + r
-        z_i = 2*z_r*z_i + i
-        if(!(Number.isFinite(z_r) && z_r<100 && z_r>-100)) {
-            return 100
+        z_i = 2*z_r_*z_i_ + i
+        if(!(Number.isFinite(z_r) && z_r<100000 && z_r>-100000)) {
+            return 100000
         }
     }
+    z_r = Math.sqrt(z_i*z_i + z_r*z_r)
+    // z_r = z_i
     z_r = z_r > 0 ? z_r : -z_r
-    return Number.isFinite(z_r) && z_r<10 && z_r>-10 ? z_r + 1 : 100
+    return Number.isFinite(z_r) && z_r<100000 ? z_r + 1 : 100000
 }
 
 
@@ -39,10 +43,8 @@ class Canvas {
         this.max = 0
     }
 
-    getHeatmapData() {
+    getHeatmapData(H, W) {
         let N = document.getElementById("iterations").value
-        let H = document.getElementById("res").value
-        let W = H
         return _.range(H).map(
             h => _.range(W).map(
                 w => {
@@ -104,6 +106,85 @@ class Canvas {
             i: y
         }
     }
+
+    _render(H, W) {
+        let height = document.getElementById('mandelbrot').clientHeight;
+        let width = document.getElementById('mandelbrot').clientWidth;
+        let z = this.getHeatmapData(H, W);
+        var colorscaleValue = [
+            [0, 'rgb(200, 200, 200)'], // white
+            [1/512, 'rgb(10, 200, 200)'], // light blue
+            [1/256, 'rgb(50, 50, 200)'], // dark blue
+            [1/64, 'rgb(200, 50, 100)'], // red
+            [1/32, 'rgb(200, 100, 10)'], // dark yellow
+            [1/8, 'rgb(200, 10, 10)'],
+            [1-1/128, 'rgb(100, 10, 10)'],
+            [1-1/512, 'rgb(0, 0, 0)'],
+            [1, 'rgb(50,50,50)']
+        ];
+        var data = [
+            {
+                z: z,
+                type: 'heatmap',
+                colorscale: colorscaleValue,
+                showscale: false,
+                transpose: true,
+                // hoverinfo: 'skip'
+            }
+        ];
+    
+        var axisTemplate = {
+            showticklabels: false,
+            ticks: ''
+        };
+    
+        var layout = {
+            xaxis: axisTemplate,
+            yaxis: axisTemplate,
+            margin: {
+                l: 0,
+                r: 0,
+                b: 0,
+                t: 0,
+                pad: 0
+            },
+            showlegend: false,
+            // with: document.getElementById('mandelbrot').parentElement.clientWidth,
+            // height: document.getElementById('mandelbrot').parentElement.clientHeight,
+            width: width, //screen.width,
+            height: height, //screen.height,
+            autosize: false
+        };
+            
+        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+    }
+
+    render(thumbnail=true) {
+        let res =  parseInt(document.getElementById("res").value)
+        if((res > 300) && thumbnail) {
+            console.log('thumbnai')
+            this._render(100, 100)
+            setTimeout(() => this._render(res, res), 10)
+        }else{
+            this._render(res, res)
+        }
+
+        let iterations = parseInt(document.getElementById('iterations').value);
+        document.getElementById('status').innerHTML = `
+            Resolution ${res} <br/>
+            Iterations ${iterations} <br/>
+            Real range (x) ${this.x0} - ${this.x1} <br/>
+            Imaginary range (y) ${this.y0} - ${this.y1} <br/>
+        `
+        let settings = encode({
+            x0: this.x0,
+            x1: this.x1,
+            ymean: (this.y0 + this.y1)/2,
+            res: res,
+            iterations: iterations
+        })
+        this.url = `${location.href.split("?")[0]}?s=${settings}`
+    }
 }
 
 
@@ -116,69 +197,7 @@ let canvas = new Canvas(
 );
 
 
-function render(canvas) {
-    let height = document.getElementById('mandelbrot').clientHeight;
-    let width = document.getElementById('mandelbrot').clientWidth;
-    let z = canvas.getHeatmapData();
-    var colorscaleValue = [
-        [0, '#3D9970'],
-        [0.125, 'rgb(200, 200, 10)'],
-        [0.25, 'rgb(10, 200, 10)'],
-        [0.9, '#001f3f'],
-        [1, 'rgb(50,50,50)']
-    ];
-    var data = [
-        {
-            z: z,
-            type: 'heatmap',
-            colorscale: colorscaleValue,
-            showscale: false,
-            transpose: true,
-            // hoverinfo: 'skip'
-        }
-    ];
 
-    var axisTemplate = {
-        showticklabels: false,
-        ticks: ''
-    };
-
-    var layout = {
-        xaxis: axisTemplate,
-        yaxis: axisTemplate,
-        margin: {
-            l: 0,
-            r: 0,
-            b: 0,
-            t: 0,
-            pad: 0
-        },
-        showlegend: false,
-        // with: document.getElementById('mandelbrot').parentElement.clientWidth,
-        // height: document.getElementById('mandelbrot').parentElement.clientHeight,
-        width: width, //screen.width,
-        height: height, //screen.height,
-        autosize: false
-    };
-        
-    Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
-    let res = parseInt(document.getElementById('res').value);
-    let iterations = parseInt(document.getElementById('iterations').value);
-    document.getElementById('status').innerHTML = `
-        Resolution ${res} <br/>
-        Iterations ${iterations} <br/>
-        Real range (x) ${canvas.x0} - ${canvas.x1} <br/>
-        Imaginary range (y) ${canvas.y0} - ${canvas.y1} <br/>
-    `
-    let settings = encode({
-        x0: canvas.x0,
-        x1: canvas.x1,
-        ymean: (canvas.y0 + canvas.y1)/2,
-        res: res,
-        iterations: iterations
-    })
-    canvas.url = `${location.href.split("?")[0]}?s=${settings}`
-}
 
 
 function encode(obj) {
@@ -247,7 +266,7 @@ function keyEvents(e) {
             break;
      }
 
-    render(canvas)
+    canvas.render()
 }
 
 
@@ -288,7 +307,6 @@ function init() {
     const scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
     if(settings) {
         settings = decode(settings)
-        console.log('loaded:', settings)
         canvas.x0 = settings.x0
         canvas.x1 = settings.x1
         canvas.y0 = settings.ymean - (settings.x1-settings.x0)*scale/2
@@ -301,13 +319,13 @@ function init() {
         for(let c=4; c<=10; c+=1) {
             setTimeout(() => {
                 document.getElementById('res').value = 2**c
-                render(canvas)
+                canvas.render(false)
             }, (c+1)*1000)
         }
     }
-    render(canvas)
-    document.getElementById('iterations').addEventListener('change', (event) => render(canvas));
-    document.getElementById('res').addEventListener('change', (event) => render(canvas));
+    canvas.render()
+    document.getElementById('iterations').addEventListener('change', (event) => canvas.render());
+    document.getElementById('res').addEventListener('change', (event) => canvas.render());
     document.getElementById('copy').addEventListener('click', copyToClipboard, true);
     document.getElementById('mandelbrot').addEventListener('click', setTarget, false);
 }
