@@ -7,21 +7,32 @@ import _ from 'lodash';
  */
 
 
-
-function mandelbrot(r, i, N=1000) {
-    let z_r = 0
-    let z_i = 0
+function mandelbrot(r, i, N=1000, fractal_everywhere=true) {
+    let z_i, z_i_, z_r, z_r_;
+    z_r = 0
+    z_i = 0
     for(let a=0; a<=N; a+=1) {
         z_r_ = z_r
         z_i_ = z_i
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r_*z_i_ + i
-        if(!(Number.isFinite(z_r) && z_r<100000 && z_r>-100000)) {
-            return 100000
+        if(fractal_everywhere){
+            if(z_r > 1000) {
+                z_r = Math.log(z_r)
+            }
+            if(z_r < -1000) {
+                z_r = Math.log(-z_r)
+            }
+            if(z_i > 1000) {
+                z_i = Math.log(z_i)
+            }
+            if(z_i < -1000) {
+                z_i = Math.log(-z_i)
+            }
         }
     }
     z_r = Math.sqrt(z_i*z_i + z_r*z_r)
-    return Number.isFinite(z_r) && z_r<100000 ? z_r + 1 : 100000
+    return z_r + 1
 }
 
 
@@ -118,13 +129,11 @@ class Canvas {
         let z = this.getHeatmapData(H, W);
         var colorscaleValue = [
             [0, 'rgb(200, 200, 200)'], // white
-            [1/512, 'rgb(10, 200, 200)'], // light blue
-            [1/256, 'rgb(50, 50, 200)'], // dark blue
-            [1/64, 'rgb(200, 50, 100)'], // red
+            [1/256, 'rgb(20, 20, 100)'], // dark blue
             [1/32, 'rgb(200, 100, 10)'], // dark yellow
             [1/8, 'rgb(200, 10, 10)'],
-            [1-1/128, 'rgb(100, 10, 10)'],
-            [1-1/512, 'rgb(0, 0, 0)'],
+            [1/2, 'rgb(60, 60, 60)'],
+            [1-1/128, 'rgb(0, 0, 0)'],
             [1, 'rgb(50,50,50)']
         ];
         var data = [
@@ -161,13 +170,12 @@ class Canvas {
             autosize: false
         };
             
-        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: false});
     }
 
     render(thumbnail=true) {
         let res =  parseInt(document.getElementById("res").value)
         if((res > 300) && thumbnail) {
-            console.log('thumbnai')
             this._render(100, 100)
             setTimeout(() => this._render(res, res), 10)
         }else{
@@ -226,52 +234,65 @@ function decode(encoded) {
 
 
 function keyEvents(e) {
-    if(e.code=='Digit1') {
-        canvas.zoomTo(1/0.9**9)
-    }
-    if(e.code=='Digit2') {
-        canvas.zoomTo(1/0.9**7)
-    }
-    if(e.code=='Digit3') {
-        canvas.zoomTo(1/0.9**5)
-    }
-    if(e.code=='Digit4') {
-        canvas.zoomTo(1/0.9**3)
-    }
-    if(e.code=='Digit5') {
-        canvas.zoomTo(1/0.9)
-    }
-    if(e.code=='Digit6') {
-        canvas.zoomTo(0.9)
-    }
-    if(e.code=='Digit7') {
-        canvas.zoomTo(0.9**3)
-    }
-    if(e.code=='Digit8') {
-        canvas.zoomTo(0.9**5)
-    }
-    if(e.code=='Digit9') {
-        canvas.zoomTo(0.9**7)
-    }
-    if(e.code=='Digit0') {
-        canvas.zoomTo(0.9**9)
-    }
     switch (event.keyCode) {
         case 37:
             canvas.left()
-            break;
+            canvas.render()
+            return
         case 38:
             canvas.up()
-            break;
+            canvas.render()
+            return
         case 39:
             canvas.right()
-            break;
+            canvas.render()
+            return
         case 40:
             canvas.down()
-            break;
+            canvas.render()
+            return
      }
 
-    canvas.render()
+     if(e.code=='Digit1') {
+        canvas.zoomTo(1/0.9**9)
+        canvas.render(false)
+    }
+    if(e.code=='Digit2') {
+        canvas.zoomTo(1/0.9**7)
+        canvas.render(false)
+    }
+    if(e.code=='Digit3') {
+        canvas.zoomTo(1/0.9**5)
+        canvas.render(false)
+    }
+    if(e.code=='Digit4') {
+        canvas.zoomTo(1/0.9**3)
+        canvas.render(false)
+    }
+    if(e.code=='Digit5') {
+        canvas.zoomTo(1/0.9)
+        canvas.render(false)
+    }
+    if(e.code=='Digit6') {
+        canvas.zoomTo(0.9)
+        canvas.render(false)
+    }
+    if(e.code=='Digit7') {
+        canvas.zoomTo(0.9**3)
+        canvas.render(false)
+    }
+    if(e.code=='Digit8') {
+        canvas.zoomTo(0.9**5)
+        canvas.render(false)
+    }
+    if(e.code=='Digit9') {
+        canvas.zoomTo(0.9**7)
+        canvas.render(false)
+    }
+    if(e.code=='Digit0') {
+        canvas.zoomTo(0.9**9)
+        canvas.render(false)
+    }
 }
 
 
