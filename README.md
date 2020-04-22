@@ -1,3 +1,5 @@
+![Deploy](https://github.com/nielsrolf/mandelbrotjs/workflows/Deploy/badge.svg)
+
 [Try it!](https://nielsrolf.github.io/)
 
 # Setup

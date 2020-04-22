@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Mandelbrot Navigator</title>
+  <title>Frisches Mandelbrot</title>
   <meta name="author" content="Niels Warncke">
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,7 @@
 <body id="body">
     <div id="mandelbrot">
     </div>
+    
     <article id="mandelnav">
         Zoom -: Press 1-5 |
         Zoom +: Press 6-0 |
@@ -22,9 +23,12 @@
         Resolution: <input type="range" class="slider" id="res" name="res" value="1024" min="8" max="4000"> <span id="res_display"></span>  |
         Iterations <input type="range" class="slider" id="iterations" name="iterations" min="1" max="500"> <span id="iterations_display"></span>|
         <button id="copy"  type="button">Copy URL</button>
+        <a href="https://github.com/nielsrolf/mandelbrotjs"><button id="copy"  type="button">GitHub</button></a>
     </article>
     
-    <div id="status"></div>
+    
+
+
 </body>
 
 </html>
