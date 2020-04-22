@@ -7,9 +7,9 @@
   <meta name="author" content="Niels Warncke">
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="index.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <link href="style.css" rel="stylesheet">
+  <link href="slider.css" rel="stylesheet">
+  <!-- <script src="index.js"></script> -->
 </head>
 
 <body id="body">
@@ -19,10 +19,11 @@
         Zoom -: Press 1-5 |
         Zoom +: Press 6-0 |
         Focused: <span id="focused">(0, 0)</span> |
-        Resolution: <input type="range" id="res" name="res" value="1024" min="8" max="4000"> |
-        Iterations <input type="range" id="iterations" name="iterations" min="1" max="500"> |
+        Resolution: <input type="range" class="slider" id="res" name="res" value="1024" min="8" max="4000"> |
+        Iterations <input type="range" class="slider" id="iterations" name="iterations" min="1" max="500"> |
         <button id="copy"  type="button">Copy URL</button>
-    </article>\
+    </article>
+    
     <div id="status"></div>
 </body>
 
