@@ -1,6 +1,6 @@
 body {
     background-color:rgb(50, 50, 50);
-    color: rgb(220, 250, 220);
+    color: #22CCBB;
     font-family: monospace;
     size: 13px;
 }
@@ -28,18 +28,10 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-#status {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    padding: 10px;
-    color: rgb(200, 220, 200);
-}
-
 button {
     font-family: monospace;
     border: 1px solid #4202CB;
     size: 13px;
     background-color: black;
-    color: rgb(220, 250, 220);
+    color: #22CCBB;
 }
