@@ -183,12 +183,8 @@ class Canvas {
         }
 
         let iterations = parseInt(document.getElementById('iterations').value);
-        document.getElementById('status').innerHTML = `
-            Resolution ${res} <br/>
-            Iterations ${iterations} <br/>
-            Real range (x) ${this.x0} - ${this.x1} <br/>
-            Imaginary range (y) ${this.y0} - ${this.y1} <br/>
-        `
+        document.getElementById('res_display').innerHTML = res
+        document.getElementById('iterations_display').innerHTML = iterations
         let settings = encode({
             x0: this.x0,
             x1: this.x1,

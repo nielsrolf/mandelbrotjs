@@ -1,7 +1,7 @@
 .slider {
     -webkit-appearance: none;
     height: 5px;
-    background: #420420;
+    background: #4202CB;
     outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
@@ -10,14 +10,19 @@
   
   .slider:hover {
     opacity: 1;
-    background: "rgb(200, 200, 200)";
+    background: rgb(200, 200, 200);
   }
   
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 5px;
-    height: 5px;
+    height: 10px;
     background: #2CB2CB;
     cursor: pointer;
   }
+
+  .slider:hover::-webkit-slider-thumb {
+   background: #4202CB;
+   border: 1px solid #2CB2CB;
+ }
