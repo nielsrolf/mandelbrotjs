@@ -170,7 +170,7 @@ class Canvas {
             autosize: false
         };
             
-        Plotly.newPlot('mandelbrot', data, layout, {staticPlot: true});
+        Plotly.react('mandelbrot', data, layout, {staticPlot: true});
     }
 
     render(thumbnail=true) {
@@ -251,46 +251,45 @@ function keyEvents(e) {
 
      if(e.code=='Digit1') {
         canvas.zoomTo(1/0.9**9)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit2') {
         canvas.zoomTo(1/0.9**7)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit3') {
         canvas.zoomTo(1/0.9**5)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit4') {
         canvas.zoomTo(1/0.9**3)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit5') {
         canvas.zoomTo(1/0.9)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit6') {
         canvas.zoomTo(0.9)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit7') {
         canvas.zoomTo(0.9**3)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit8') {
         canvas.zoomTo(0.9**5)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit9') {
         canvas.zoomTo(0.9**7)
-        canvas.render(false)
+        canvas.render()
     }
     if(e.code=='Digit0') {
         canvas.zoomTo(0.9**9)
-        canvas.render(false)
+        canvas.render()
     }
 }
-
 
 function copyToClipboard() {
     const el = document.createElement('textarea');
