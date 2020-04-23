@@ -36,6 +36,25 @@ function mandelbrot(r, i, N=1000, fractal_everywhere=true) {
 }
 
 
+function consoleBrot() {
+    let H=30;
+    let W=50;
+    let art = "";
+    for(let h=0; h<H; h+= 1){
+        for(let w=0; w<W; w+= 1){
+            if(Math.log(mandelbrot(-2 + w/W*4, -2 + h/H*4, 30)) > 2) {
+                art += " "
+            }else{
+                art += "*"
+            }
+        }
+        art += "\n"
+    }
+    art += "\nYet another mandelbrot :)"
+    console.log(art)
+}
+
+
 let target = {
     r: 0,
     i: 0
@@ -51,6 +70,8 @@ class Canvas {
         this.min = 0
         this.max = 0
     }
+
+    
 
     getHeatmapData(H, W) {
         let N = document.getElementById("iterations").value
@@ -168,7 +189,7 @@ class Canvas {
             autosize: false
         };
             
-        Plotly.react('mandelbrot', data, layout, {staticPlot: true});
+        Plotly.react('mandelbrot', data, layout, {staticPlot: false});
     }
 
     render(thumbnail=true) {
@@ -345,6 +366,7 @@ function init() {
     document.getElementById('copy').addEventListener('click', copyToClipboard, true);
     document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.9**3), false);
     document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.9**6), false);
+    consoleBrot()
 }
 
 
