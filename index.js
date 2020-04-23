@@ -1,13 +1,30 @@
-import Plotly from 'plotly.js-cartesian-dist';
-import _ from 'lodash';
-
-/***
- * In general:
- * x <-> real part of the complex number <-> width of the screen
- */
+import Plotly, { len } from 'plotly.js-cartesian-dist';
+import RBush from 'rbush';
 
 
-function mandelbrot(r, i, N=1000, fractal_everywhere=true) {
+
+
+function encode(obj) {
+    encoded = encodeURIComponent(
+        Buffer.from(
+            JSON.stringify(obj)
+        ).toString('base64')
+    )
+    return encoded
+}
+
+
+function decode(encoded) {
+    console.log('encoded', encoded)
+    let obj = JSON.parse(
+        Buffer.from(
+            decodeURIComponent(encoded),'base64'
+        ).toString())
+    return obj
+}
+
+
+function mandelbrot(r, i, N, fractal_everywhere=true) {
     let z_i, z_i_, z_r, z_r_;
     z_r = 0
     z_i = 0
@@ -32,7 +49,98 @@ function mandelbrot(r, i, N=1000, fractal_everywhere=true) {
         }
     }
     z_r = Math.sqrt(z_i*z_i + z_r*z_r)
-    return z_r + 1
+    return [z_r, z_i, Math.log(Math.sqrt(z_i*z_i + z_r*z_r)+1)]
+}
+
+
+class PointRBush extends RBush {
+    /***
+     * r: real part of x
+     * i: imaginary part of x
+     * -> these define the point on the plane we want to eval
+     * m_r, m_i, n: coordinates of the computed value after n rounds
+     * v: value that will be plotted (log(norm(mandelbort(r, i)))
+     */
+    toBBox([r, i, m_r, m_i, N, v]) {
+        return {
+            minX: r, minY: i, maxX: r, maxY: i, m_r, m_i, N, v
+        };
+     }
+
+    compareMinX(a, b) {
+        return a.x - b.x
+    }
+
+    compareMinY(a, b) {
+        return a.y - b.y
+    }
+}
+
+
+class MandelCache {
+    /***
+     * Class to compute mandelbrot values and cache them
+     * How?
+     * We store every computation we make in a datastructure that makes it
+     * easy to look up fuzzy matches. This will allow to reuse many values
+     * that have been computed in other zoom levels or before a movement
+     * 
+     */
+    constructor() {
+        this.tree = new PointRBush();
+    }
+
+    computeAndCache(x0, x1, y0, y1, N, H, W) {
+        let dx = (x1 - x0)/W
+        let dy = (y1 - y0)/H
+        let matrix = []
+        for(let x=x0; x<=x1; x+=dx){
+            let row = []
+            for(let y=y0; y<=y1; y+=dy){
+                const results = this.tree.search({
+                    minX: x-dx/2,
+                    minY: y-dy/2,
+                    maxX: x+dx/2,
+                    maxY: y+dy/2
+                });
+                if(results.length==0) {
+                    // no precomputed value found, compute and cache
+                    let [m_r, m_i, v] = mandelbrot(x, y, N);
+                    this.tree.insert([x, y, m_r, m_i, N, v])
+                    row.push(v)
+                }else{
+                    // the results still have to be checked for N
+                    // if point.N < N, we can use it to compute the target faster
+                    let closestMatch = {N: 0, m_r: x, m_i: y};
+                    for(let point of results) {
+                        if(point.N==N) {
+                            // we found one, don't have to look further
+                            row.push(point.v)
+                            continue
+                        }
+                        if((point.N < N) && point.N>closestMatch.N) {
+                            closestMatch = point
+                        }
+                    }
+                    // we couldnt find a match
+                    let [m_r, m_i, v] = mandelbrot(closestMatch.m_r, closestMatch.m_i, N-closestMatch.N);
+                    this.tree.insert([x, y, m_r, m_i, N, v])
+                    row.push(v)
+                }
+            }
+            matrix.push(row)
+            if(matrix.length==1){
+                console.log(row.length)
+            }
+        }
+        return matrix
+    }
+
+    prune(x0, x1, y0, y1, N) {
+        // Remove every entry from the tree which is either far away from
+        // the current screen or has different N
+    }
+    
 }
 
 
@@ -42,7 +150,8 @@ function consoleBrot() {
     let art = "";
     for(let h=0; h<H; h+= 1){
         for(let w=0; w<W; w+= 1){
-            if(Math.log(mandelbrot(-2 + w/W*4, -2 + h/H*4, 30)) > 2) {
+            let [m_r, m_i, v] = mandelbrot(-2 + w/W*4, -2 + h/H*4, 30)
+            if(v > 2) {
                 art += " "
             }else{
                 art += "*"
@@ -55,40 +164,24 @@ function consoleBrot() {
 }
 
 
-let target = {
-    r: 0,
-    i: 0
-}
-
-
 class Canvas {
+    /***
+     * Class that puts a fresh mandelbrot into a container
+     * and computes the screen limits
+     */
+
     constructor(x0, x1, y0, y1) {
         this.x0 = x0
         this.x1 = x1
         this.y0 = y0
         this.y1 = y1
-        this.min = 0
-        this.max = 0
+        this.target = {r: 0, i: 0}
+        this.data = new MandelCache()
     }
-
-    
 
     getHeatmapData(H, W) {
         let N = document.getElementById("iterations").value
-        return _.range(H).map(
-            h => _.range(W).map(
-                w => {
-                    let z = mandelbrot(
-                        this.x0 + h/H*(this.x1 - this.x0),
-                        this.y0 + w/H*(this.y1 - this.y0),
-                        N
-                    );
-                    this.min = this.min < z ? this.min : z
-                    this.max = this.max > z ? this.max : z
-                    return Math.log(z)
-                }
-            )
-        )
+        return this.data.computeAndCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
     }
 
     zoomTo(zoom=0.9) {
@@ -100,38 +193,43 @@ class Canvas {
          * i: imaginary part of the target
          * zoom
          */
-        x0 = this.x0
-        x1 = this.x1
-        y0 = this.y0
-        y1 = this.y1
-        this.x0 = target.r - (target.r - x0) * zoom
-        this.x1 = target.r - (target.r - x1) * zoom
-        this.y0 = target.i - (target.i - y0) * zoom
-        this.y1 = target.i - (target.i - y1) * zoom
+        let x0 = this.x0
+        let x1 = this.x1
+        let y0 = this.y0
+        let y1 = this.y1
+        this.x0 = this.target.r - (this.target.r - x0) * zoom
+        this.x1 = this.target.r - (this.target.r - x1) * zoom
+        this.y0 = this.target.i - (this.target.i - y0) * zoom
+        this.y1 = this.target.i - (this.target.i - y1) * zoom
+        this.render()
     }
 
     left() {
         let delta = this.x1-this.x0
         this.x0 -= delta*0.1
         this.x1 -= delta*0.1
+        this.render()
     }
 
     right() {
         let delta = this.x1-this.x0
         this.x0 += delta*0.1
         this.x1 += delta*0.1
+        this.render()
     }
 
     up() {
         let delta = (this.y1-this.y0)
         this.y0 += delta*0.1
         this.y1 += delta*0.1
+        this.render()
     }
 
     down() {
         let delta = (this.y1-this.y0)
         this.y0 -= delta*0.1
         this.y1 -= delta*0.1
+        this.render()
     }
 
     locationAt(clickEvent) {
@@ -189,7 +287,7 @@ class Canvas {
             autosize: false
         };
             
-        Plotly.react('mandelbrot', data, layout, {staticPlot: false});
+        Plotly.react('mandelbrot', data, layout, {staticPlot: true});
     }
 
     render(thumbnail=true) {
@@ -217,6 +315,8 @@ class Canvas {
 
 
 
+
+
 let canvas = new Canvas(
     -2,
     2,
@@ -228,87 +328,55 @@ let canvas = new Canvas(
 
 
 
-function encode(obj) {
-    encoded = encodeURIComponent(
-        Buffer.from(
-            JSON.stringify(obj)
-        ).toString('base64')
-    )
-    return encoded
-}
-
-
-function decode(encoded) {
-    console.log('encoded', encoded)
-    let obj = JSON.parse(
-        Buffer.from(
-            decodeURIComponent(encoded),'base64'
-        ).toString())
-    return obj
-}
-
-
 function keyEvents(e) {
     switch (event.keyCode) {
         case 37:
             canvas.left()
-            canvas.render()
             return
         case 38:
             canvas.up()
-            canvas.render()
             return
         case 39:
             canvas.right()
-            canvas.render()
             return
         case 40:
             canvas.down()
-            canvas.render()
             return
      }
 
-     if(e.code=='Digit1') {
+    if(e.code=='Digit1') {
         canvas.zoomTo(1/0.9**9)
-        canvas.render()
     }
     if(e.code=='Digit2') {
         canvas.zoomTo(1/0.9**7)
-        canvas.render()
     }
     if(e.code=='Digit3') {
         canvas.zoomTo(1/0.9**5)
-        canvas.render()
     }
     if(e.code=='Digit4') {
         canvas.zoomTo(1/0.9**3)
-        canvas.render()
     }
     if(e.code=='Digit5') {
         canvas.zoomTo(1/0.9)
-        canvas.render()
     }
     if(e.code=='Digit6') {
         canvas.zoomTo(0.9)
-        canvas.render()
     }
     if(e.code=='Digit7') {
         canvas.zoomTo(0.9**3)
-        canvas.render()
     }
     if(e.code=='Digit8') {
         canvas.zoomTo(0.9**5)
-        canvas.render()
     }
     if(e.code=='Digit9') {
         canvas.zoomTo(0.9**7)
-        canvas.render()
     }
     if(e.code=='Digit0') {
         canvas.zoomTo(0.9**9)
         canvas.render()
     }
 }
+
 
 function copyToClipboard() {
     const el = document.createElement('textarea');
@@ -321,13 +389,9 @@ function copyToClipboard() {
 
 
 function setTarget(clickEvent, zoom) {
-    let pos = canvas.locationAt(clickEvent);
-    // console.log(pos)
-    target.r = pos.r;
-    target.i = pos.i;
-    document.getElementById("focused").innerHTML = `(${pos.r}, ${pos.i})`
+    canvas.target = canvas.locationAt(clickEvent);
+    document.getElementById("focused").innerHTML = `(${canvas.target.r}, ${canvas.target.i})`
     canvas.zoomTo(zoom)
-    canvas.render()
 }
 
 
