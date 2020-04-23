@@ -24,11 +24,9 @@ function decode(encoded) {
 }
 
 
-function mandelbrot(r, i, N, fractal_everywhere=true) {
-    let z_i, z_i_, z_r, z_r_;
-    z_r = 0
-    z_i = 0
-    for(let a=0; a<=N; a+=1) {
+function mandelbrot(r, i, N, z_r=0, z_i=0, fractal_everywhere=true) {
+    let z_r_, z_i_
+    for(let a=0; a<N; a+=1) {
         z_r_ = z_r
         z_i_ = z_i
         z_r = z_r*z_r - z_i*z_i + r
@@ -48,7 +46,6 @@ function mandelbrot(r, i, N, fractal_everywhere=true) {
             }
         }
     }
-    z_r = Math.sqrt(z_i*z_i + z_r*z_r)
     return [z_r, z_i, Math.log(Math.sqrt(z_i*z_i + z_r*z_r)+1)]
 }
 
@@ -111,27 +108,31 @@ class MandelCache {
                 }else{
                     // the results still have to be checked for N
                     // if point.N < N, we can use it to compute the target faster
-                    let closestMatch = {N: 0, m_r: x, m_i: y};
+                    let closestMatch = [x, y, x, y, 1];
+                    let match = false;
                     for(let point of results) {
-                        if(point.N==N) {
+                        if(point[4]==N) {
                             // we found one, don't have to look further
-                            row.push(point.v)
-                            continue
+                            row.push(point[5])
+                            match = true
+                            break
                         }
-                        if((point.N < N) && point.N>closestMatch.N) {
+                        if((point[4] < N) && point[4]>closestMatch.N) {
+                            console.log("previous N found")
                             closestMatch = point
                         }
                     }
+                    if(match) continue
                     // we couldnt find a match
-                    let [m_r, m_i, v] = mandelbrot(closestMatch.m_r, closestMatch.m_i, N-closestMatch.N);
+                    let [m_r, m_i, v] = mandelbrot(x, y, N-closestMatch[4], closestMatch[2], closestMatch[3])
                     this.tree.insert([x, y, m_r, m_i, N, v])
+                    if(!Number.isFinite(v)) {
+                        console.log({closestMatch, x, y})
+                    }
                     row.push(v)
                 }
             }
             matrix.push(row)
-            if(matrix.length==1){
-                console.log(row.length)
-            }
         }
         return matrix
     }
@@ -290,7 +291,7 @@ class Canvas {
         Plotly.react('mandelbrot', data, layout, {staticPlot: true});
     }
 
-    render(thumbnail=true) {
+    render(thumbnail=false) {
         let res =  parseInt(document.getElementById("res").value)
         if((res > 300) && thumbnail) {
             this._render(100, 100)
