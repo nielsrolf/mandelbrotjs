@@ -1,6 +1,5 @@
 todo:
     - performance:
         - cache data for moving
-    - optic:
-        - dynamic color mapping
-        - random color mapping
+        - precompute initial screen 
+    - video 
