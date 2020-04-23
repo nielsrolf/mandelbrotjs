@@ -163,10 +163,8 @@ class Canvas {
                 pad: 0
             },
             showlegend: false,
-            // with: document.getElementById('mandelbrot').parentElement.clientWidth,
-            // height: document.getElementById('mandelbrot').parentElement.clientHeight,
-            width: width, //screen.width,
-            height: height, //screen.height,
+            width: width, 
+            height: height,
             autosize: false
         };
             
@@ -301,12 +299,14 @@ function copyToClipboard() {
 };
 
 
-function setTarget(clickEvent) {
+function setTarget(clickEvent, zoom) {
     let pos = canvas.locationAt(clickEvent);
     // console.log(pos)
     target.r = pos.r;
     target.i = pos.i;
     document.getElementById("focused").innerHTML = `(${pos.r}, ${pos.i})`
+    canvas.zoomTo(zoom)
+    canvas.render()
 }
 
 
@@ -343,7 +343,8 @@ function init() {
     document.getElementById('iterations').addEventListener('change', (event) => canvas.render());
     document.getElementById('res').addEventListener('change', (event) => canvas.render());
     document.getElementById('copy').addEventListener('click', copyToClipboard, true);
-    document.getElementById('mandelbrot').addEventListener('click', setTarget, false);
+    document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.9**3), false);
+    document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.9**6), false);
 }
 
 
