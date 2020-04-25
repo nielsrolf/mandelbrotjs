@@ -230,7 +230,8 @@ class Canvas {
             x1: this.x1,
             ymean: (this.y0 + this.y1)/2,
             res: res,
-            iterations: iterations
+            iterations: iterations,
+            e: this.fractalEverywhere
         })
         this.url = `${location.href.split("?")[0]}?s=${settings}`
     }
@@ -351,6 +352,7 @@ function init() {
         canvas.x1 = settings.x1
         canvas.y0 = settings.ymean - (settings.x1-settings.x0)*canvas.scale/2
         canvas.y1 = settings.ymean + (settings.x1-settings.x0)*canvas.scale/2
+        canvas.fractalEverywhere = settings.e
         document.getElementById('res').value = settings.res
         document.getElementById('iterations').value = settings.iterations
     }else{

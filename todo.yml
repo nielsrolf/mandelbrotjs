@@ -1,6 +1,4 @@
-todo:
+couldTheoreticallyBeDone:
     - performance:
-        - move div as preview on move events
-        - trigger plotly zoom on zoom
         - precompute initial screen 
     - video 
