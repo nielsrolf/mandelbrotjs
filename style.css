@@ -45,3 +45,8 @@ button {
     background-color: black;
     color: #22CCBB;
 }
+
+.active {
+    color: black;
+    background-color: #22CCBB;
+}

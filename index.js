@@ -21,14 +21,14 @@ function decode(encoded) {
 }
 
 
-function mandelbrot(r, i, N, z_r=0, z_i=0, fractal_everywhere=true) {
+function mandelbrot(r, i, N, z_r=0, z_i=0, fractalEverywhere=true) {
     let z_r_, z_i_
     for(let a=0; a<N; a+=1) {
         z_r_ = z_r
         z_i_ = z_i
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r_*z_i_ + i
-        if(fractal_everywhere){
+        if(fractalEverywhere){
             if(z_r > 1000) {
                 z_r = Math.log(z_r)
             }
@@ -43,7 +43,9 @@ function mandelbrot(r, i, N, z_r=0, z_i=0, fractal_everywhere=true) {
             }
         }
     }
-    return [z_r, z_i, Math.log(Math.sqrt(z_i*z_i + z_r*z_r)+1)]
+    let z = Math.log(Math.sqrt(z_i*z_i + z_r*z_r)+1)
+    z = Number.isFinite(z) ? z : 1000
+    return [z_r, z_i, z]
 }
 
 
@@ -80,6 +82,7 @@ class Canvas {
         this.y1 = y1
         this.target = {r: 0, i: 0}
         this.scale = 1 // will be set to clientHeight/clientWidth
+        this.fractalEverywhere = true
     }
 
     withoutCache(x0, x1, y0, y1, N, H, W) {
@@ -90,7 +93,7 @@ class Canvas {
         for(let x=x0; x<=x1; x+=dx){
             let row = []
             for(let y=y0; y<=y1; y+=dy){
-                let [m_r, m_i, v] = mandelbrot(x, y, N)
+                let [m_r, m_i, v] = mandelbrot(x, y, N, 0, 0, this.fractalEverywhere)
                 row.push(v)
             }
             matrix.push(row)
@@ -328,6 +331,17 @@ function findGetParameter(parameterName) {
 }
 
 
+function changeBackground() {
+    canvas.fractalEverywhere = !canvas.fractalEverywhere
+    if(canvas.fractalEverywhere) {
+        document.getElementById('everywhere').classList.add('active')
+    }else{
+        document.getElementById('everywhere').classList.remove('active')
+    }
+    canvas.render()
+}
+
+
 function init() {
     canvas.scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
     let settings = findGetParameter('s');
@@ -347,6 +361,7 @@ function init() {
     document.getElementById('iterations').addEventListener('change', (event) => canvas.render(false));
     document.getElementById('res').addEventListener('change', (event) => canvas.render());
     document.getElementById('copy').addEventListener('click', copyToClipboard, true);
+    document.getElementById('everywhere').addEventListener('click', changeBackground, true);
     document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.8**3), false);
     document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.8**6), false);
     consoleBrot()
