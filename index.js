@@ -15,7 +15,6 @@ function encode(obj) {
 
 
 function decode(encoded) {
-    console.log('encoded', encoded)
     let obj = JSON.parse(
         Buffer.from(
             decodeURIComponent(encoded),'base64'
@@ -92,6 +91,8 @@ class MandelCache {
         let dx = (x1 - x0)/W
         let dy = (y1 - y0)/H
         let matrix = []
+        let matches = 0
+        let smallerN = 0
         for(let x=x0; x<=x1; x+=dx){
             let row = []
             for(let y=y0; y<=y1; y+=dy){
@@ -109,17 +110,19 @@ class MandelCache {
                 }else{
                     // the results still have to be checked for N
                     // if point.N < N, we can use it to compute the target faster
+                    
                     let closestMatch = [x, y, x, y, 1];
                     let match = false;
                     for(let point of results) {
                         if(point[4]==N) {
                             // we found one, don't have to look further
                             row.push(point[5])
+                            matches += 1
                             match = true
                             break
                         }
-                        if((point[4] < N) && point[4]>closestMatch.N) {
-                            console.log("previous N found")
+                        if((point[4] < N) && point[4]>closestMatch[4]) {
+                            smallerN += 1
                             closestMatch = point
                         }
                     }
@@ -135,6 +138,8 @@ class MandelCache {
             }
             matrix.push(row)
         }
+        console.log("matches", matches)
+        console.log("smallerN", smallerN)
         console.log("computed in ", (t-Date.now())/1000)
         return matrix
     }
@@ -187,7 +192,7 @@ class Canvas {
         return this.data.computeAndCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
     }
 
-    zoomTo(zoom=0.9) {
+    zoomTo(zoom=0.8) {
         /*** Change the limits of the canvas so that a smaller (zoomed in) area is shown
          * It zooms into the direction of the complex number (r, u) and moves every
          * pixel by the factor zoom closer to the target
@@ -196,32 +201,14 @@ class Canvas {
          * i: imaginary part of the target
          * zoom
          */
-        zoom = 0.99
         let x0 = this.x0
         let x1 = this.x1
         let y0 = this.y0
         let y1 = this.y1
-        let res = Math.floor(parseInt(document.getElementById('res').value))
         this.x0 = this.target.r - (this.target.r - x0) * zoom
         this.x1 = this.target.r - (this.target.r - x1) * zoom
         this.y0 = this.target.i - (this.target.i - y0) * zoom
         this.y1 = this.target.i - (this.target.i - y1) * zoom
-        let t = Date.now()
-        console.log([Math.floor((this.x0-x0)/(x1-x0)*res), Math.floor((this.x1-x0)/(x1-x0)*res)])
-        console.log(
-            {
-                x0: x0,
-                x1: x1,
-                after0: this.x0,
-                after1: this.x1,
-                res
-            }
-        )
-        // Plotly.relayout('mandelbrot', {
-        //     'xaxis.range': [Math.floor((this.x0-x0)/(x1-x0)*res), Math.floor((this.x1-x0)/(x1-x0)*res)],
-        //     'yaxis.range': [Math.floor((this.y0-y0)/(y1-y0)*res), Math.floor((this.y1-y0)/(y1-y0)*res)]
-        // })
-        console.log("relayout in ", (t-Date.now())/1000)
         this.render()
     }
 
@@ -283,7 +270,6 @@ class Canvas {
                 colorscale: colorscaleValue,
                 showscale: false,
                 transpose: true,
-                // hoverinfo: 'skip'
             }
         ];
     
@@ -307,15 +293,13 @@ class Canvas {
             height: height,
             autosize: false
         };
-        let t = Date.now()
-        Plotly.react('mandelbrot', data, layout, {staticPlot: false});
-        console.log("react in ", (t-Date.now())/1000) 
+        Plotly.react('mandelbrot', data, layout, {staticPlot: true});
     }
 
-    render(thumbnail=false) {
+    render(thumbnail=true) {
         let res =  parseInt(document.getElementById("res").value)
         if((res > 300) && thumbnail) {
-            this._render(100, 100)
+            this._render(150, 150)
             setTimeout(() => this._render(res, res), 10)
         }else{
             this._render(res, res)
@@ -367,34 +351,34 @@ function keyEvents(e) {
      }
 
     if(e.code=='Digit1') {
-        canvas.zoomTo(1/0.9**9)
+        canvas.zoomTo(1/0.8**9)
     }
     if(e.code=='Digit2') {
-        canvas.zoomTo(1/0.9**7)
+        canvas.zoomTo(1/0.8**7)
     }
     if(e.code=='Digit3') {
-        canvas.zoomTo(1/0.9**5)
+        canvas.zoomTo(1/0.8**5)
     }
     if(e.code=='Digit4') {
-        canvas.zoomTo(1/0.9**3)
+        canvas.zoomTo(1/0.8**3)
     }
     if(e.code=='Digit5') {
-        canvas.zoomTo(1/0.9)
+        canvas.zoomTo(1/0.8)
     }
     if(e.code=='Digit6') {
-        canvas.zoomTo(0.9)
+        canvas.zoomTo(0.8)
     }
     if(e.code=='Digit7') {
-        canvas.zoomTo(0.9**3)
+        canvas.zoomTo(0.8**3)
     }
     if(e.code=='Digit8') {
-        canvas.zoomTo(0.9**5)
+        canvas.zoomTo(0.8**5)
     }
     if(e.code=='Digit9') {
-        canvas.zoomTo(0.9**7)
+        canvas.zoomTo(0.8**7)
     }
     if(e.code=='Digit0') {
-        canvas.zoomTo(0.9**9)
+        canvas.zoomTo(0.8**9)
     }
 }
 
@@ -446,13 +430,12 @@ function init() {
         canvas.y1 = 2*scale
     }
     canvas.render()
-    document.getElementById('iterations').addEventListener('change', (event) => canvas.render());
+    document.getElementById('iterations').addEventListener('change', (event) => canvas.render(false));
     document.getElementById('res').addEventListener('change', (event) => canvas.render());
     document.getElementById('copy').addEventListener('click', copyToClipboard, true);
-    document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.9**3), false);
-    document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.9**6), false);
+    document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.8**3), false);
+    document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.8**6), false);
     consoleBrot()
-    document.getElementById('mandelbrot').on('plotly_selected', function(eventData) { console.log(eventData) })
 }
 
 
