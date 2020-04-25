@@ -88,6 +88,7 @@ class MandelCache {
     }
 
     computeAndCache(x0, x1, y0, y1, N, H, W) {
+        let t = Date.now()
         let dx = (x1 - x0)/W
         let dy = (y1 - y0)/H
         let matrix = []
@@ -134,6 +135,7 @@ class MandelCache {
             }
             matrix.push(row)
         }
+        console.log("computed in ", (t-Date.now())/1000)
         return matrix
     }
 
@@ -194,14 +196,32 @@ class Canvas {
          * i: imaginary part of the target
          * zoom
          */
+        zoom = 0.99
         let x0 = this.x0
         let x1 = this.x1
         let y0 = this.y0
         let y1 = this.y1
+        let res = Math.floor(parseInt(document.getElementById('res').value))
         this.x0 = this.target.r - (this.target.r - x0) * zoom
         this.x1 = this.target.r - (this.target.r - x1) * zoom
         this.y0 = this.target.i - (this.target.i - y0) * zoom
         this.y1 = this.target.i - (this.target.i - y1) * zoom
+        let t = Date.now()
+        console.log([Math.floor((this.x0-x0)/(x1-x0)*res), Math.floor((this.x1-x0)/(x1-x0)*res)])
+        console.log(
+            {
+                x0: x0,
+                x1: x1,
+                after0: this.x0,
+                after1: this.x1,
+                res
+            }
+        )
+        // Plotly.relayout('mandelbrot', {
+        //     'xaxis.range': [Math.floor((this.x0-x0)/(x1-x0)*res), Math.floor((this.x1-x0)/(x1-x0)*res)],
+        //     'yaxis.range': [Math.floor((this.y0-y0)/(y1-y0)*res), Math.floor((this.y1-y0)/(y1-y0)*res)]
+        // })
+        console.log("relayout in ", (t-Date.now())/1000)
         this.render()
     }
 
@@ -287,8 +307,9 @@ class Canvas {
             height: height,
             autosize: false
         };
-            
-        Plotly.react('mandelbrot', data, layout, {staticPlot: true});
+        let t = Date.now()
+        Plotly.react('mandelbrot', data, layout, {staticPlot: false});
+        console.log("react in ", (t-Date.now())/1000) 
     }
 
     render(thumbnail=false) {
@@ -374,7 +395,6 @@ function keyEvents(e) {
     }
     if(e.code=='Digit0') {
         canvas.zoomTo(0.9**9)
-        canvas.render()
     }
 }
 
@@ -432,9 +452,9 @@ function init() {
     document.getElementById('mandelbrot').addEventListener('click', (event) => setTarget(event, 0.9**3), false);
     document.getElementById('mandelbrot').addEventListener('dbclick', (event) => setTarget(event, 0.9**6), false);
     consoleBrot()
+    document.getElementById('mandelbrot').on('plotly_selected', function(eventData) { console.log(eventData) })
 }
 
 
 document.addEventListener('DOMContentLoaded', init, false);
 document.onkeydown = keyEvents
-

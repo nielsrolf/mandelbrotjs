@@ -1,5 +1,6 @@
 todo:
     - performance:
-        - cache data for moving
+        - move div as preview on move events
+        - trigger plotly zoom on zoom
         - precompute initial screen 
     - video 
