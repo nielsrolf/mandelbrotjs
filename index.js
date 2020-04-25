@@ -86,6 +86,25 @@ class MandelCache {
         this.tree = new PointRBush();
     }
 
+    withoutCache(x0, x1, y0, y1, N, H, W) {
+        let t = Date.now()
+        let dx = (x1 - x0)/W
+        let dy = (y1 - y0)/H
+        let matrix = []
+        let matches = 0
+        let smallerN = 0
+        for(let x=x0; x<=x1; x+=dx){
+            let row = []
+            for(let y=y0; y<=y1; y+=dy){
+                let [m_r, m_i, v] = mandelbrot(x, y, N)
+                row.push(v)
+            }
+            matrix.push(row)
+        }
+        console.log("computed in ", (t-Date.now())/1000)
+        return matrix
+    }
+
     computeAndCache(x0, x1, y0, y1, N, H, W) {
         let t = Date.now()
         let dx = (x1 - x0)/W
@@ -189,6 +208,7 @@ class Canvas {
 
     getHeatmapData(H, W) {
         let N = document.getElementById("iterations").value
+        return this.data.withoutCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
         return this.data.computeAndCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
     }
 
