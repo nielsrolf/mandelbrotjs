@@ -1,6 +1,4 @@
 import Plotly, { len } from 'plotly.js-cartesian-dist';
-import RBush from 'rbush';
-
 
 
 
@@ -49,128 +47,6 @@ function mandelbrot(r, i, N, z_r=0, z_i=0, fractal_everywhere=true) {
 }
 
 
-class PointRBush extends RBush {
-    /***
-     * r: real part of x
-     * i: imaginary part of x
-     * -> these define the point on the plane we want to eval
-     * m_r, m_i, n: coordinates of the computed value after n rounds
-     * v: value that will be plotted (log(norm(mandelbort(r, i)))
-     */
-    toBBox([r, i, m_r, m_i, N, v]) {
-        return {
-            minX: r, minY: i, maxX: r, maxY: i, m_r, m_i, N, v
-        };
-     }
-
-    compareMinX(a, b) {
-        return a.x - b.x
-    }
-
-    compareMinY(a, b) {
-        return a.y - b.y
-    }
-}
-
-
-class MandelCache {
-    /***
-     * Class to compute mandelbrot values and cache them
-     * How?
-     * We store every computation we make in a datastructure that makes it
-     * easy to look up fuzzy matches. This will allow to reuse many values
-     * that have been computed in other zoom levels or before a movement
-     * 
-     */
-    constructor() {
-        this.tree = new PointRBush();
-    }
-
-    withoutCache(x0, x1, y0, y1, N, H, W) {
-        let t = Date.now()
-        let dx = (x1 - x0)/W
-        let dy = (y1 - y0)/H
-        let matrix = []
-        let matches = 0
-        let smallerN = 0
-        for(let x=x0; x<=x1; x+=dx){
-            let row = []
-            for(let y=y0; y<=y1; y+=dy){
-                let [m_r, m_i, v] = mandelbrot(x, y, N)
-                row.push(v)
-            }
-            matrix.push(row)
-        }
-        console.log("computed in ", (t-Date.now())/1000)
-        return matrix
-    }
-
-    computeAndCache(x0, x1, y0, y1, N, H, W) {
-        let t = Date.now()
-        let dx = (x1 - x0)/W
-        let dy = (y1 - y0)/H
-        let matrix = []
-        let matches = 0
-        let smallerN = 0
-        for(let x=x0; x<=x1; x+=dx){
-            let row = []
-            for(let y=y0; y<=y1; y+=dy){
-                const results = this.tree.search({
-                    minX: x-dx/2,
-                    minY: y-dy/2,
-                    maxX: x+dx/2,
-                    maxY: y+dy/2
-                });
-                if(results.length==0) {
-                    // no precomputed value found, compute and cache
-                    let [m_r, m_i, v] = mandelbrot(x, y, N);
-                    this.tree.insert([x, y, m_r, m_i, N, v])
-                    row.push(v)
-                }else{
-                    // the results still have to be checked for N
-                    // if point.N < N, we can use it to compute the target faster
-                    
-                    let closestMatch = [x, y, x, y, 1];
-                    let match = false;
-                    for(let point of results) {
-                        if(point[4]==N) {
-                            // we found one, don't have to look further
-                            row.push(point[5])
-                            matches += 1
-                            match = true
-                            break
-                        }
-                        if((point[4] < N) && point[4]>closestMatch[4]) {
-                            smallerN += 1
-                            closestMatch = point
-                        }
-                    }
-                    if(match) continue
-                    // we couldnt find a match
-                    let [m_r, m_i, v] = mandelbrot(x, y, N-closestMatch[4], closestMatch[2], closestMatch[3])
-                    this.tree.insert([x, y, m_r, m_i, N, v])
-                    if(!Number.isFinite(v)) {
-                        console.log({closestMatch, x, y})
-                    }
-                    row.push(v)
-                }
-            }
-            matrix.push(row)
-        }
-        console.log("matches", matches)
-        console.log("smallerN", smallerN)
-        console.log("computed in ", (t-Date.now())/1000)
-        return matrix
-    }
-
-    prune(x0, x1, y0, y1, N) {
-        // Remove every entry from the tree which is either far away from
-        // the current screen or has different N
-    }
-    
-}
-
-
 function consoleBrot() {
     let H=30;
     let W=50;
@@ -203,12 +79,28 @@ class Canvas {
         this.y0 = y0
         this.y1 = y1
         this.target = {r: 0, i: 0}
-        this.data = new MandelCache()
+    }
+
+    withoutCache(x0, x1, y0, y1, N, H, W) {
+        let t = Date.now()
+        let dx = (x1 - x0)/W
+        let dy = (y1 - y0)/H
+        let matrix = []
+        for(let x=x0; x<=x1; x+=dx){
+            let row = []
+            for(let y=y0; y<=y1; y+=dy){
+                let [m_r, m_i, v] = mandelbrot(x, y, N)
+                row.push(v)
+            }
+            matrix.push(row)
+        }
+        console.log("computed in ", (t-Date.now())/1000)
+        return matrix
     }
 
     getHeatmapData(H, W) {
         let N = document.getElementById("iterations").value
-        return this.data.withoutCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
+        return this.withoutCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
         return this.data.computeAndCache(this.x0, this.x1, this.y0, this.y1, N, H, W)
     }
 
