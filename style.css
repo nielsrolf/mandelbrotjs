@@ -28,6 +28,16 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+#toprow {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 button {
     font-family: monospace;
     border: 1px solid #4202CB;

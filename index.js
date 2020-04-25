@@ -79,6 +79,7 @@ class Canvas {
         this.y0 = y0
         this.y1 = y1
         this.target = {r: 0, i: 0}
+        this.scale = 1 // will be set to clientHeight/clientWidth
     }
 
     withoutCache(x0, x1, y0, y1, N, H, W) {
@@ -210,11 +211,12 @@ class Canvas {
 
     render(thumbnail=true) {
         let res =  parseInt(document.getElementById("res").value)
+        let H = Math.floor(this.scale*res)
         if((res > 300) && thumbnail) {
             this._render(150, 150)
-            setTimeout(() => this._render(res, res), 10)
+            setTimeout(() => this._render(H, res), 10)
         }else{
-            this._render(res, res)
+            this._render(H, res)
         }
 
         let iterations = parseInt(document.getElementById('iterations').value);
@@ -327,19 +329,19 @@ function findGetParameter(parameterName) {
 
 
 function init() {
+    canvas.scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
     let settings = findGetParameter('s');
-    const scale = document.getElementById('mandelbrot').clientHeight/document.getElementById('mandelbrot').clientWidth
     if(settings) {
         settings = decode(settings)
         canvas.x0 = settings.x0
         canvas.x1 = settings.x1
-        canvas.y0 = settings.ymean - (settings.x1-settings.x0)*scale/2
-        canvas.y1 = settings.ymean + (settings.x1-settings.x0)*scale/2
+        canvas.y0 = settings.ymean - (settings.x1-settings.x0)*canvas.scale/2
+        canvas.y1 = settings.ymean + (settings.x1-settings.x0)*canvas.scale/2
         document.getElementById('res').value = settings.res
         document.getElementById('iterations').value = settings.iterations
     }else{
-        canvas.y0 = -2*scale
-        canvas.y1 = 2*scale
+        canvas.y0 = -2*canvas.scale
+        canvas.y1 = 2*canvas.scale
     }
     canvas.render()
     document.getElementById('iterations').addEventListener('change', (event) => canvas.render(false));
