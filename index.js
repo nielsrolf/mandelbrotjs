@@ -29,8 +29,21 @@ function mandelbrot(r, i, N, z_r=0, z_i=0, fractalEverywhere=true, cutoff=10000)
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r_*z_i_ + i
         if(fractalEverywhere){
-            z_r = Math.tanh(z_r/cutoff)*cutoff
-            z_i = Math.tanh(z_i/cutoff)*cutoff
+            if(z_r > cutoff){
+                z_r =Math.tanh(((z_r-cutoff)/10000)*10000)+cutoff
+            }
+
+            if(z_r < -cutoff){
+                z_r = Math.tanh(((z_r+cutoff)/10000)*10000)-cutoff
+            }
+
+            if(z_i > cutoff){
+                z_i =Math.tanh(((z_i-cutoff)/10000)*10000)+cutoff
+            }
+
+            if(z_i < -cutoff){
+                z_i = Math.tanh(((z_i+cutoff)/10000)*10000)-cutoff
+            }
             // if(z_r > 1000) {
             //     z_r = Math.log(z_r)
             // }
