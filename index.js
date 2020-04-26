@@ -21,7 +21,7 @@ function decode(encoded) {
 }
 
 
-function mandelbrot(r, i, N, z_r=0, z_i=0, fractalEverywhere=true, cutoff=10000) {
+function mandelbrot(r, i, N, z_r=0, z_i=0, fractalEverywhere=true, cutoff=5) {
     let z_r_, z_i_
     for(let a=0; a<N; a+=1) {
         z_r_ = z_r
@@ -29,33 +29,18 @@ function mandelbrot(r, i, N, z_r=0, z_i=0, fractalEverywhere=true, cutoff=10000)
         z_r = z_r*z_r - z_i*z_i + r
         z_i = 2*z_r_*z_i_ + i
         if(fractalEverywhere){
-            if(z_r > cutoff){
-                z_r =Math.tanh(((z_r-cutoff)/10000)*10000)+cutoff
+            if(z_r > 1000) {
+                z_r = Math.log(z_r-cutoff) + cutoff
             }
-
-            if(z_r < -cutoff){
-                z_r = Math.tanh(((z_r+cutoff)/10000)*10000)-cutoff
+            if(z_r < -1000) {
+                z_r = -(Math.log(-z_r-cutoff) + cutoff)
             }
-
-            if(z_i > cutoff){
-                z_i =Math.tanh(((z_i-cutoff)/10000)*10000)+cutoff
+            if(z_i > 1000) {
+                z_i = Math.log(z_i-cutoff) + cutoff
             }
-
-            if(z_i < -cutoff){
-                z_i = Math.tanh(((z_i+cutoff)/10000)*10000)-cutoff
+            if(z_i < -1000) {
+                z_i = -(Math.log(-z_i-cutoff) + cutoff)
             }
-            // if(z_r > 1000) {
-            //     z_r = Math.log(z_r)
-            // }
-            // if(z_r < -cutoff) {
-            //     z_r = -Math.log(-z_r)
-            // }
-            // if(z_i > cutoff) {
-            //     z_i = Math.log(z_i)
-            // }
-            // if(z_i < -cutoff) {
-            //     z_i = -Math.log(-z_i)
-            // }
         }
     }
     let z = Math.log(Math.sqrt(z_i*z_i + z_r*z_r)+1)
@@ -187,10 +172,10 @@ class Canvas {
         let z = this.getHeatmapData(H, W);
         var colorscaleValue = [
             [0, 'rgb(200, 200, 200)'], // white
-            [1/32, '#2CB'],
-            [1/8, '#2CB2CB'],
-            [1/2, '#420420'],
-            [1-1/64, '420'],
+            [1/256, 'rgb(20, 20, 100)'], // dark blue
+            [1/32, 'rgb(200, 100, 10)'], // dark yellow
+            [1/8, 'rgb(200, 10, 10)'],
+            [1/2, 'rgb(60, 60, 60)'],
             [1-1/128, 'rgb(0, 0, 0)'],
             [1, 'rgb(50,50,50)']
         ];
